@@ -7,6 +7,8 @@ Konseptini seç, kartpostal, şekilli not, fotoğraf ve Spotify şarkısından k
 - Düzenlenebilir ve sıralanabilir en fazla 16 anı.
 - Cihazda fotoğraf boyutlandırma, tarayıcıda taslak kaydı.
 - Alıcının açabileceği sürpriz kutu önizlemesi.
+- Beş renk paleti, beş kapak simgesi, üç yazı havası ve iki anı düzeni.
+- Konsepte göre düzenlenebilir yazı önerileri; kişiselleştirme seçenekleri isteğe bağlı ve kapalı başlar.
 - Fotoğrafları içinde taşıyan indirilebilir HTML hediye dosyası.
 - Kullanıcının seçtiği Spotify bağlantısının, dinleme düğmesine basıldıktan sonra gömülü oynatıcıda açılması.
 
