@@ -4,6 +4,8 @@ Konseptini seç, kartpostal, şekilli not, fotoğraf ve Spotify şarkısından k
 
 Canlı site: https://saklianikutusu.berkantkul.com.tr/
 
+Site haritası: https://saklianikutusu.berkantkul.com.tr/sitemap.xml
+
 ## Özellikler
 - Aşk, doğum günü, yıl dönümü, Sevgililer Günü, terfi, içimden geldi ve serbest içerikli Özel konsepti.
 - Düzenlenebilir ve sıralanabilir en fazla 16 anı.

@@ -11,6 +11,21 @@ const THEMES = new Set(["love", "birthday", "anniversary", "valentine", "promoti
 const MAX_BODY_BYTES = 18 * 1024 * 1024;
 const MAX_PHOTO_BYTES = 2 * 1024 * 1024;
 const MAX_TOTAL_PHOTO_BYTES = 12 * 1024 * 1024;
+const SITEMAP_XML = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://saklianikutusu.berkantkul.com.tr/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+</urlset>`;
+const ROBOTS_TXT = `User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /b/
+
+Sitemap: https://saklianikutusu.berkantkul.com.tr/sitemap.xml
+`;
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), { status, headers: JSON_HEADERS });
@@ -174,6 +189,8 @@ export default {
     if (request.method !== "GET" && request.method !== "HEAD") return new Response("Method not allowed", { status: 405, headers: { allow: "GET, HEAD, POST" } });
     if (path === "/style.css" || path === "/b/style.css") return staticResponse(STYLE_CSS, "text/css; charset=utf-8");
     if (path === "/app.js" || path === "/b/app.js") return staticResponse(APP_JS, "text/javascript; charset=utf-8");
+    if (path === "/sitemap.xml") return staticResponse(SITEMAP_XML, "application/xml; charset=utf-8", "public, max-age=3600");
+    if (path === "/robots.txt") return staticResponse(ROBOTS_TXT, "text/plain; charset=utf-8", "public, max-age=3600");
     if (path === "/" || /^\/b\/[A-Za-z0-9_-]{16,64}\/?$/.test(path)) return staticResponse(INDEX_HTML, "text/html; charset=utf-8", "no-cache");
     return new Response("Not found", { status: 404, headers: SECURITY_HEADERS });
   },

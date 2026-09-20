@@ -65,6 +65,13 @@ const nestedStyle = await worker.fetch(new Request("https://sakli.example/b/styl
 assert.equal(nestedStyle.status, 200);
 assert.match(nestedStyle.headers.get("content-type"), /text\/css/);
 
+const sitemap = await worker.fetch(new Request("https://sakli.example/sitemap.xml"), env);
+assert.equal(sitemap.status, 200);
+assert.match(await sitemap.text(), /https:\/\/saklianikutusu\.berkantkul\.com\.tr\//);
+const robots = await worker.fetch(new Request("https://sakli.example/robots.txt"), env);
+assert.equal(robots.status, 200);
+assert.match(await robots.text(), /Disallow: \/b\//);
+
 const created = await worker.fetch(new Request("https://sakli.example/api/boxes", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(baseBox) }), env);
 assert.equal(created.status, 201);
 const createdJson = await created.json();
