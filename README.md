@@ -8,14 +8,17 @@ Konseptini seç, kartpostal, şekilli not, fotoğraf ve Spotify şarkısından k
 - Cihazda fotoğraf boyutlandırma, tarayıcıda taslak kaydı.
 - Alıcının açabileceği sürpriz kutu önizlemesi.
 - Beş renk paleti, beş kapak simgesi, üç yazı havası ve iki anı düzeni.
+- Kutu açılırken kalp, yıldız, konfeti veya sade açılış efekti.
+- Kişiye özel kapanış cümlesi.
 - Konsepte göre düzenlenebilir yazı önerileri; kişiselleştirme seçenekleri isteğe bağlı ve kapalı başlar.
-- Fotoğrafları içinde taşıyan indirilebilir HTML hediye dosyası.
+- Tek tıkla üretilen, kopyalanabilen ve mobil paylaşım menüsüyle gönderilebilen kalıcı kutu bağlantısı.
+- Alıcı için düzenleme araçlarından arındırılmış, salt okunur hediye sayfası.
 - Kullanıcının seçtiği Spotify bağlantısının, dinleme düğmesine basıldıktan sonra gömülü oynatıcıda açılması.
 
 ## Gizlilik ve paylaşım
-Anılar sunucuya gönderilmez. Taslak yalnızca kullanılan tarayıcının localStorage alanında saklanır. Paylaşılan cihazlarda diğer kullanıcılar taslağa erişebilir. Saklama alanı dolarsa uygulama uyarır; taslak kaydı garanti edilmez. Fotoğraflar ve notlar indirilen dosyanın içinde bulunur; dosya şifreli değildir, gönderdiğiniz kişi içeriğini görebilir.
+Kutuyu hazırlarken taslak yalnızca kullanılan tarayıcının localStorage alanında saklanır. “Paylaşım linki oluştur” düğmesine basıldığında notlar ve kutu ayarları D1 veritabanına, fotoğraflar R2 nesne deposuna yüklenir. Bağlantı uzun ve tahmin edilmesi güç bir kimlik taşır; bağlantıya sahip olan herkes kutuyu görebilir.
 
-Bu sürüm çevrimiçi kutu kaydetme veya kişiye özel paylaşım bağlantısı üretmez. Alıcı indirilen HTML dosyasını bir web tarayıcısında açar. Bazı mobil mesajlaşma uygulamaları HTML önizlemesini desteklemediğinden dosyayı indirmek veya bilgisayarda açmak gerekebilir. Spotify ve Google Fonts bağlantıları internet gerektirir; notlar ve fotoğraflar dosyadadır.
+Spotify ve Google Fonts bağlantıları internet gerektirir. Kutular anonimdir; kullanıcı hesabı, düzenleme bağlantısı veya silme paneli bu sürümde yoktur.
 
 ## Çalıştırma
-Dosyaları bir statik HTTP sunucusuyla sunun. Paket kurulumu veya derleme gerekmez. GitHub Pages: main dalı ve kök klasör.
+`npm install`, ardından `npm run build` komutlarını çalıştırın. Üretim çıktısı `dist/server/index.js`; D1 geçişleri `dist/.openai/drizzle` altında hazırlanır.
