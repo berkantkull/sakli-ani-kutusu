@@ -57,7 +57,13 @@ const baseBox = {
 
 const home = await worker.fetch(new Request("https://sakli.example/"), env);
 assert.equal(home.status, 200);
-assert.match(await home.text(), /Paylaşım linki oluştur/);
+const homeHtml = await home.text();
+assert.match(homeHtml, /Paylaşım linki oluştur/);
+assert.match(homeHtml, /\.\/style\.css\?v=5/);
+
+const nestedStyle = await worker.fetch(new Request("https://sakli.example/b/style.css?v=5"), env);
+assert.equal(nestedStyle.status, 200);
+assert.match(nestedStyle.headers.get("content-type"), /text\/css/);
 
 const created = await worker.fetch(new Request("https://sakli.example/api/boxes", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(baseBox) }), env);
 assert.equal(created.status, 201);

@@ -172,8 +172,8 @@ export default {
     const boxMatch = path.match(/^\/api\/boxes\/([A-Za-z0-9_-]{16,64})$/);
     if (request.method === "GET" && boxMatch) return getBox(boxMatch[1], env);
     if (request.method !== "GET" && request.method !== "HEAD") return new Response("Method not allowed", { status: 405, headers: { allow: "GET, HEAD, POST" } });
-    if (path === "/style.css") return staticResponse(STYLE_CSS, "text/css; charset=utf-8");
-    if (path === "/app.js") return staticResponse(APP_JS, "text/javascript; charset=utf-8");
+    if (path === "/style.css" || path === "/b/style.css") return staticResponse(STYLE_CSS, "text/css; charset=utf-8");
+    if (path === "/app.js" || path === "/b/app.js") return staticResponse(APP_JS, "text/javascript; charset=utf-8");
     if (path === "/" || /^\/b\/[A-Za-z0-9_-]{16,64}\/?$/.test(path)) return staticResponse(INDEX_HTML, "text/html; charset=utf-8", "no-cache");
     return new Response("Not found", { status: 404, headers: SECURITY_HEADERS });
   },
