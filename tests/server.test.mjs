@@ -45,7 +45,7 @@ class MockBucket {
 
 const env = { DB: new MockDB(), BUCKET: new MockBucket() };
 const baseBox = {
-  theme: "love",
+  theme: "special",
   recipient: "Deniz",
   sender: "Berkant",
   title: "İyi ki varsın",

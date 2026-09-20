@@ -7,7 +7,7 @@ const SECURITY_HEADERS = {
 };
 const TYPES = new Set(["postcard", "text", "photo", "song"]);
 const SHAPES = new Set(["heart", "circle", "wave"]);
-const THEMES = new Set(["love", "birthday", "anniversary", "valentine", "promotion", "just"]);
+const THEMES = new Set(["love", "birthday", "anniversary", "valentine", "promotion", "just", "special"]);
 const MAX_BODY_BYTES = 18 * 1024 * 1024;
 const MAX_PHOTO_BYTES = 2 * 1024 * 1024;
 const MAX_TOTAL_PHOTO_BYTES = 12 * 1024 * 1024;

@@ -3,7 +3,7 @@
 Konseptini seç, kartpostal, şekilli not, fotoğraf ve Spotify şarkısından kişisel bir anı kutusu oluştur.
 
 ## Özellikler
-- Aşk, doğum günü, yıl dönümü, Sevgililer Günü, terfi, içimden geldi konseptleri.
+- Aşk, doğum günü, yıl dönümü, Sevgililer Günü, terfi, içimden geldi ve serbest içerikli Özel konsepti.
 - Düzenlenebilir ve sıralanabilir en fazla 16 anı.
 - Cihazda fotoğraf boyutlandırma, tarayıcıda taslak kaydı.
 - Alıcının açabileceği sürpriz kutu önizlemesi.
