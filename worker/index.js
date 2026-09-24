@@ -3,14 +3,17 @@ const SECURITY_HEADERS = {
   "x-content-type-options": "nosniff",
   "referrer-policy": "strict-origin-when-cross-origin",
   "permissions-policy": "camera=(), microphone=(), geolocation=()",
-  "content-security-policy": "default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; script-src 'self'; frame-src https://open.spotify.com; connect-src 'self'; base-uri 'none'; form-action 'self'",
+  "content-security-policy": "default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' data: blob:; script-src 'self'; frame-src https://open.spotify.com; connect-src 'self'; base-uri 'none'; form-action 'self'",
 };
-const TYPES = new Set(["postcard", "text", "photo", "song"]);
+const TYPES = new Set(["postcard", "text", "photo", "song", "voice", "reveal", "timeline"]);
 const SHAPES = new Set(["heart", "circle", "wave"]);
 const THEMES = new Set(["love", "birthday", "anniversary", "valentine", "promotion", "just", "special"]);
-const MAX_BODY_BYTES = 18 * 1024 * 1024;
+const WORLDS = new Set(["paper", "night", "cinema", "botanical", "ocean", "dream"]);
+const STICKERS = new Set(["♡", "✦", "☁", "🌸", "🎞️", "🌊", "🦋", "🌙"]);
+const MAX_BODY_BYTES = 26 * 1024 * 1024;
 const MAX_PHOTO_BYTES = 2 * 1024 * 1024;
-const MAX_TOTAL_PHOTO_BYTES = 12 * 1024 * 1024;
+const MAX_AUDIO_BYTES = 6 * 1024 * 1024;
+const MAX_TOTAL_ASSET_BYTES = 18 * 1024 * 1024;
 const SITEMAP_XML = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
@@ -50,13 +53,16 @@ function spotifyUrl(value) {
   }
 }
 
-function decodePhoto(value) {
+function decodeAsset(value, kind) {
   if (typeof value !== "string") return null;
-  const match = value.match(/^data:image\/(jpeg|png|webp);base64,([A-Za-z0-9+/=]+)$/);
+  const match = kind === "image"
+    ? value.match(/^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/)
+    : value.match(/^data:(audio\/(?:mpeg|mp3|wav|ogg|webm|mp4|x-m4a));base64,([A-Za-z0-9+/=]+)$/);
   if (!match) return null;
-  const contentType = `image/${match[1]}`;
+  const contentType = match[1];
   const binary = atob(match[2]);
-  if (!binary.length || binary.length > MAX_PHOTO_BYTES) return null;
+  const maxBytes = kind === "image" ? MAX_PHOTO_BYTES : MAX_AUDIO_BYTES;
+  if (!binary.length || binary.length > maxBytes) return null;
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
   return { bytes, contentType };
@@ -77,11 +83,13 @@ function normalizeBox(input, boxId) {
       font: text(input.style?.font, 20, "romantic"),
       layout: text(input.style?.layout, 20, "collage"),
       effect: text(input.style?.effect, 20, "hearts"),
+      world: WORLDS.has(input.style?.world) ? input.style.world : "paper",
+      stickers: Array.isArray(input.style?.stickers) ? input.style.stickers.filter((value) => STICKERS.has(value)).slice(0, 4) : [],
     },
     items: [],
   };
-  const photos = [];
-  let photoBytes = 0;
+  const assets = [];
+  let assetBytes = 0;
   for (const raw of input.items) {
     if (!raw || !TYPES.has(raw.type)) throw new Error("Kutuda desteklenmeyen bir anı var.");
     const item = {
@@ -90,25 +98,35 @@ function normalizeBox(input, boxId) {
       title: text(raw.title, 100),
       text: text(raw.text, 700),
       shape: SHAPES.has(raw.shape) ? raw.shape : "heart",
+      date: text(raw.date, 40),
       url: "",
       photo: "",
+      audio: "",
     };
     if (item.type === "song") {
       item.url = spotifyUrl(raw.url);
       if (!item.url) throw new Error("Spotify bağlantılarından biri geçersiz.");
     }
     if (item.type === "photo") {
-      const photo = decodePhoto(raw.photo);
+      const photo = decodeAsset(raw.photo, "image");
       if (!photo) throw new Error("Fotoğraflardan biri okunamadı veya çok büyük.");
-      photoBytes += photo.bytes.byteLength;
-      if (photoBytes > MAX_TOTAL_PHOTO_BYTES) throw new Error("Fotoğrafların toplam boyutu çok büyük.");
+      assetBytes += photo.bytes.byteLength;
       const assetId = randomId(12);
       item.photo = `/api/boxes/${boxId}/photos/${assetId}`;
-      photos.push({ ...photo, id: assetId, objectKey: `boxes/${boxId}/${assetId}` });
+      assets.push({ ...photo, id: assetId, objectKey: `boxes/${boxId}/${assetId}` });
     }
+    if (item.type === "voice") {
+      const audio = decodeAsset(raw.audio, "audio");
+      if (!audio) throw new Error("Ses kayıtlarından biri okunamadı veya çok büyük.");
+      assetBytes += audio.bytes.byteLength;
+      const assetId = randomId(12);
+      item.audio = `/api/boxes/${boxId}/assets/${assetId}`;
+      assets.push({ ...audio, id: assetId, objectKey: `boxes/${boxId}/${assetId}` });
+    }
+    if (assetBytes > MAX_TOTAL_ASSET_BYTES) throw new Error("Fotoğraf ve ses kayıtlarının toplam boyutu çok büyük.");
     output.items.push(item);
   }
-  return { output, photos };
+  return { output, assets };
 }
 
 async function createBox(request, env) {
@@ -131,14 +149,14 @@ async function createBox(request, env) {
   }
   const uploaded = [];
   try {
-    for (const photo of normalized.photos) {
-      await env.BUCKET.put(photo.objectKey, photo.bytes, { httpMetadata: { contentType: photo.contentType, cacheControl: "public, max-age=31536000, immutable" } });
-      uploaded.push(photo.objectKey);
+    for (const asset of normalized.assets) {
+      await env.BUCKET.put(asset.objectKey, asset.bytes, { httpMetadata: { contentType: asset.contentType, cacheControl: "public, max-age=31536000, immutable" } });
+      uploaded.push(asset.objectKey);
     }
     const createdAt = Date.now();
     const statements = [env.DB.prepare("INSERT INTO boxes (id, payload, created_at) VALUES (?, ?, ?)").bind(id, JSON.stringify(normalized.output), createdAt)];
-    for (const photo of normalized.photos) {
-      statements.push(env.DB.prepare("INSERT INTO uploaded_assets (id, box_id, object_key, content_type, byte_size, created_at) VALUES (?, ?, ?, ?, ?, ?)").bind(photo.id, id, photo.objectKey, photo.contentType, photo.bytes.byteLength, createdAt));
+    for (const asset of normalized.assets) {
+      statements.push(env.DB.prepare("INSERT INTO uploaded_assets (id, box_id, object_key, content_type, byte_size, created_at) VALUES (?, ?, ?, ?, ?, ?)").bind(asset.id, id, asset.objectKey, asset.contentType, asset.bytes.byteLength, createdAt));
     }
     await env.DB.batch(statements);
     return json({ id, url: `/b/${id}` }, 201);
@@ -160,7 +178,7 @@ async function getBox(id, env) {
   }
 }
 
-async function getPhoto(boxId, assetId, env) {
+async function getAsset(boxId, assetId, env) {
   try {
     const row = await env.DB.prepare("SELECT object_key, content_type FROM uploaded_assets WHERE id = ? AND box_id = ? LIMIT 1").bind(assetId, boxId).first();
     if (!row) return new Response("Not found", { status: 404 });
@@ -168,7 +186,7 @@ async function getPhoto(boxId, assetId, env) {
     if (!object) return new Response("Not found", { status: 404 });
     return new Response(object.body, { headers: { "content-type": row.content_type, "cache-control": "public, max-age=31536000, immutable", etag: object.httpEtag || "" } });
   } catch (error) {
-    console.error("getPhoto failed", error);
+    console.error("getAsset failed", error);
     return new Response("Storage unavailable", { status: 503 });
   }
 }
@@ -183,7 +201,9 @@ export default {
     const path = url.pathname;
     if (request.method === "POST" && path === "/api/boxes") return createBox(request, env);
     const photoMatch = path.match(/^\/api\/boxes\/([A-Za-z0-9_-]{16,64})\/photos\/([A-Za-z0-9_-]{12,64})$/);
-    if (request.method === "GET" && photoMatch) return getPhoto(photoMatch[1], photoMatch[2], env);
+    if (request.method === "GET" && photoMatch) return getAsset(photoMatch[1], photoMatch[2], env);
+    const assetMatch = path.match(/^\/api\/boxes\/([A-Za-z0-9_-]{16,64})\/assets\/([A-Za-z0-9_-]{12,64})$/);
+    if (request.method === "GET" && assetMatch) return getAsset(assetMatch[1], assetMatch[2], env);
     const boxMatch = path.match(/^\/api\/boxes\/([A-Za-z0-9_-]{16,64})$/);
     if (request.method === "GET" && boxMatch) return getBox(boxMatch[1], env);
     if (request.method !== "GET" && request.method !== "HEAD") return new Response("Method not allowed", { status: 405, headers: { allow: "GET, HEAD, POST" } });

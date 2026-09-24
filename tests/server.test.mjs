@@ -51,7 +51,7 @@ const baseBox = {
   title: "İyi ki varsın",
   note: "Bu kutuda biraz biz varız.",
   finalNote: "Daha nice anılara. ♡",
-  style: { palette: "rose", icon: "♡", font: "romantic", layout: "collage", effect: "stars" },
+  style: { palette: "rose", icon: "♡", font: "romantic", layout: "collage", effect: "stars", world: "dream", stickers: ["☁", "✦"] },
   items: [{ id: "client-id", type: "text", title: "", text: "İyi ki.", shape: "heart", url: "", photo: "" }],
 };
 
@@ -59,9 +59,10 @@ const home = await worker.fetch(new Request("https://sakli.example/"), env);
 assert.equal(home.status, 200);
 const homeHtml = await home.text();
 assert.match(homeHtml, /Paylaşım linki oluştur/);
-assert.match(homeHtml, /\.\/style\.css\?v=5/);
+assert.match(homeHtml, /\.\/style\.css\?v=7/);
+assert.match(homeHtml, /Sesli mesaj/);
 
-const nestedStyle = await worker.fetch(new Request("https://sakli.example/b/style.css?v=5"), env);
+const nestedStyle = await worker.fetch(new Request("https://sakli.example/b/style.css?v=7"), env);
 assert.equal(nestedStyle.status, 200);
 assert.match(nestedStyle.headers.get("content-type"), /text\/css/);
 
@@ -85,7 +86,12 @@ assert.equal(loadedJson.items[0].text, "İyi ki.");
 assert.notEqual(loadedJson.items[0].id, "client-id");
 
 const photoBox = structuredClone(baseBox);
-photoBox.items = [{ id: "photo", type: "photo", title: "Biz", text: "", shape: "heart", url: "", photo: "data:image/png;base64,aGVsbG8=" }];
+photoBox.items = [
+  { id: "photo", type: "photo", title: "Biz", text: "", shape: "heart", url: "", photo: "data:image/png;base64,aGVsbG8=" },
+  { id: "voice", type: "voice", title: "Sesim", text: "Dinle", audio: "data:audio/mpeg;base64,aGVsbG8=" },
+  { id: "reveal", type: "reveal", title: "Sır", text: "Seni seviyorum" },
+  { id: "timeline", type: "timeline", title: "Başlangıç", text: "O gün", date: "2024" },
+];
 const photoCreated = await worker.fetch(new Request("https://sakli.example/api/boxes", { method: "POST", body: JSON.stringify(photoBox) }), env);
 assert.equal(photoCreated.status, 201);
 const photoCreatedJson = await photoCreated.json();
@@ -95,5 +101,12 @@ const image = await worker.fetch(new Request(`https://sakli.example${photoLoaded
 assert.equal(image.status, 200);
 assert.equal(image.headers.get("content-type"), "image/png");
 assert.equal(await image.text(), "hello");
+assert.match(photoLoaded.items[1].audio, /^\/api\/boxes\/.+\/assets\/.+$/);
+const audio = await worker.fetch(new Request(`https://sakli.example${photoLoaded.items[1].audio}`), env);
+assert.equal(audio.status, 200);
+assert.equal(audio.headers.get("content-type"), "audio/mpeg");
+assert.equal(await audio.text(), "hello");
+assert.equal(photoLoaded.items[2].type, "reveal");
+assert.equal(photoLoaded.items[3].date, "2024");
 
-console.log("Share creation, durable box retrieval, photo storage and static routes passed.");
+console.log("Share creation, photo/audio storage, imaginative content types and static routes passed.");
