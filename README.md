@@ -27,4 +27,4 @@ Kutuyu hazırlarken taslak yalnızca kullanılan tarayıcının localStorage ala
 Spotify ve Google Fonts bağlantıları internet gerektirir. Kutular anonimdir; kullanıcı hesabı, düzenleme bağlantısı veya silme paneli bu sürümde yoktur.
 
 ## Çalıştırma
-`npm install`, ardından `npm run build` komutlarını çalıştırın. Üretim çıktısı `dist/server/index.js`; D1 geçişleri `dist/.openai/drizzle` altında hazırlanır.
+`npm install`, ardından `npm run build` komutlarını çalıştırın. Üretim çıktısı `dist/server/index.js` altında hazırlanır.
